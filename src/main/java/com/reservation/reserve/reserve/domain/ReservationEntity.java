@@ -23,11 +23,11 @@ public class ReservationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seat_id")
     private SeatEntity seat;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "concert_id")
     private ConcertEntity concert;
 
@@ -40,5 +40,6 @@ public class ReservationEntity {
     @LastModifiedDate
     private LocalDateTime updateAt;
 
+    @Enumerated(EnumType.STRING)
     private StatusEnum status;
 }

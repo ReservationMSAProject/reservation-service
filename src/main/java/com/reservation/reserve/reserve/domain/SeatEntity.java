@@ -3,6 +3,7 @@ package com.reservation.reserve.reserve.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,5 +22,5 @@ public class SeatEntity {
     private String grade;
 
     @OneToMany(mappedBy = "seat")
-    private List<ReservationEntity> reservations;
+    private List<ReservationEntity> reservations = new ArrayList<>();
 }
