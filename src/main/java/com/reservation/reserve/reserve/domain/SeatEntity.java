@@ -27,7 +27,7 @@ public class SeatEntity {
     private String grade;
 
     @Column(name = "price")
-    private String price;
+    private long price;
 
     @OneToMany(mappedBy = "seat")
     private List<ReservationEntity> reservations = new ArrayList<>();

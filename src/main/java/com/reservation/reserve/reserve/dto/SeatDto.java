@@ -9,5 +9,5 @@ public record SeatDto(
         String seatNumber,
         String section,
         String grade,
-        String price
+        long price
 ) implements Serializable { }
