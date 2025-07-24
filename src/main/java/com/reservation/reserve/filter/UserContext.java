@@ -1,15 +1,15 @@
 package com.reservation.reserve.filter;
 
-import com.reservation.reserve.reserve.dto.UserInfo;
+import com.reservation.reserve.reserve.dto.UserInfoDTO;
 
 public class UserContext {
-    private static final ThreadLocal<UserInfo> currentUser = new ThreadLocal<>();
+    private static final ThreadLocal<UserInfoDTO> currentUser = new ThreadLocal<>();
     
     public static void setCurrentUser(String userId, String role) {
-        currentUser.set(new UserInfo(userId, role));
+        currentUser.set(new UserInfoDTO(userId, role));
     }
     
-    public static UserInfo getCurrentUser() {
+    public static UserInfoDTO getCurrentUser() {
         return currentUser.get();
     }
     

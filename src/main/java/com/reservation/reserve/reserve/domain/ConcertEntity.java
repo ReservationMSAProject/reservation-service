@@ -13,12 +13,19 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ConcertEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "concert_id")
     private Long id;
 
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "date")
     private LocalDateTime date;
+
+    @Column(name="location")
     private String location;
 
     @OneToMany(mappedBy = "concert")
