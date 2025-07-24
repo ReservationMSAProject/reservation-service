@@ -4,10 +4,7 @@ import com.reservation.reserve.reserve.domain.ConcertEntity;
 import com.reservation.reserve.reserve.domain.ReservationEntity;
 import com.reservation.reserve.reserve.domain.SeatEntity;
 import com.reservation.reserve.reserve.domain.StatusEnum;
-import com.reservation.reserve.reserve.dto.ConcertDto;
-import com.reservation.reserve.reserve.dto.ReservationRequestDto;
-import com.reservation.reserve.reserve.dto.ReservationResponseDto;
-import com.reservation.reserve.reserve.dto.SeatDto;
+import com.reservation.reserve.reserve.dto.*;
 import com.reservation.reserve.reserve.repository.ConcertRepository;
 import com.reservation.reserve.reserve.repository.ReservationRepository;
 import com.reservation.reserve.reserve.repository.SeatRepository;
@@ -68,7 +65,15 @@ public class ReservationService {
                 saved.getCreateAt(),
                 saved.getStatus()
         );
+    }
 
+    // 취소
+    @Transactional
+    public void deleteReservation(Long id) {
+        ReservationEntity reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
+        reservation.updateStatus(StatusEnum.CANCEL);
+        reservationRepository.save(reservation);
 
     }
 }

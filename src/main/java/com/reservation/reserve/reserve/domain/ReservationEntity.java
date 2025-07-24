@@ -59,4 +59,8 @@ public class ReservationEntity {
             concert.getReservations().add(this);
         }
     }
+
+    public void updateStatus(StatusEnum status) {
+        this.status = status;
+    }
 }
