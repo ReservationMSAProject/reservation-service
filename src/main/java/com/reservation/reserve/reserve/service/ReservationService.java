@@ -27,7 +27,7 @@ public class ReservationService {
 
     // 저장
     @Transactional
-    public ReservationResponseDto createReservation(ReservationRequestDto requestDto) {
+    public ReservationResponseDto createReservation(ReservationRequestDto requestDto, String email) {
 
         ConcertEntity concertEntity = concertRepository
                 .findById(requestDto.concertId())
@@ -37,9 +37,9 @@ public class ReservationService {
                 .findById(requestDto.seatId())
                 .orElseThrow(() -> new EntityNotFoundException("Seat not found"));
 
+
         ReservationEntity reservation = ReservationEntity.builder()
-                .reserverName(requestDto.reserverName())
-                .reserverPhone(requestDto.reserverPhone())
+                .reserverEmail(email)
                 .status(StatusEnum.PROGRESS)
                 .build();
 
@@ -60,8 +60,7 @@ public class ReservationService {
                         concertEntity.getDate(),
                         concertEntity.getLocation()
                 ),
-                saved.getReserverName(),
-                saved.getReserverPhone(),
+                saved.getReserverEmail(),
                 saved.getCreateAt(),
                 saved.getStatus()
         );

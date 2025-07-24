@@ -10,9 +10,6 @@ import java.time.LocalDateTime;
  */
 public record ReservationRequestDto(
         Long seatId,
-        Long concertId,
-        String reserverName,
-        String reserverPhone,
-        LocalDateTime createAt
+        Long concertId
 ) implements Serializable {
 }

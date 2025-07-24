@@ -11,8 +11,7 @@ import java.time.LocalDateTime;
 public record ReservationResponseDto(
         SeatDto seat,
         ConcertDto concert,
-        String reserverName,
-        String reserverPhone,
+        String reserverEmail,
         LocalDateTime createAt,
         StatusEnum status
 ) implements Serializable {

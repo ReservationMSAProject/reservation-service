@@ -31,11 +31,8 @@ public class ReservationEntity {
     @JoinColumn(name = "concert_id")
     private ConcertEntity concert;
 
-    @Column(name = "reserver_name")
-    private String reserverName;
-
-    @Column(name = "reserver_phone")
-    private String reserverPhone;
+    @Column(name = "reserver_email")
+    private String reserverEmail;
 
     @CreatedDate
     private LocalDateTime createAt;
