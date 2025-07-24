@@ -31,7 +31,10 @@ public class ReservationEntity {
     @JoinColumn(name = "concert_id")
     private ConcertEntity concert;
 
+    @Column(name = "reserver_name")
     private String reserverName;
+
+    @Column(name = "reserver_phone")
     private String reserverPhone;
 
     @CreatedDate
@@ -42,4 +45,18 @@ public class ReservationEntity {
 
     @Enumerated(EnumType.STRING)
     private StatusEnum status;
+
+    public void addSeat(SeatEntity seat) {
+        this.seat = seat;
+        if (seat != null && !seat.getReservations().contains(this)) {
+            seat.getReservations().add(this);
+        }
+    }
+
+    public void addConcert(ConcertEntity concert) {
+        this.concert = concert;
+        if (concert != null && !concert.getReservations().contains(this)) {
+            concert.getReservations().add(this);
+        }
+    }
 }
