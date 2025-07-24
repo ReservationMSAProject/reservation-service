@@ -13,7 +13,6 @@ public record ReservationRequestDto(
         Long concertId,
         String reserverName,
         String reserverPhone,
-        LocalDateTime createAt,
-        String status
+        LocalDateTime createAt
 ) implements Serializable {
 }

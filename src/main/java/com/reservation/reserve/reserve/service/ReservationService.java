@@ -43,7 +43,7 @@ public class ReservationService {
         ReservationEntity reservation = ReservationEntity.builder()
                 .reserverName(requestDto.reserverName())
                 .reserverPhone(requestDto.reserverPhone())
-                .status(StatusEnum.valueOf(requestDto.status()))
+                .status(StatusEnum.PROGRESS)
                 .build();
 
         // 연관관계 설정
