@@ -1,10 +1,12 @@
 package com.reservation.reserve.reserve.service;
 
+
 import com.reservation.reserve.reserve.domain.ConcertEntity;
 import com.reservation.reserve.reserve.domain.ReservationEntity;
 import com.reservation.reserve.reserve.domain.SeatEntity;
 import com.reservation.reserve.reserve.domain.StatusEnum;
-import com.reservation.reserve.reserve.dto.*;
+import com.reservation.reserve.reserve.dto.reservation.ReservationCreateRequest;
+import com.reservation.reserve.reserve.dto.reservation.ReservationResponse;
 import com.reservation.reserve.reserve.repository.ConcertRepository;
 import com.reservation.reserve.reserve.repository.ReservationRepository;
 import com.reservation.reserve.reserve.repository.SeatRepository;
@@ -27,53 +29,95 @@ public class ReservationService {
 
     // 저장
     @Transactional
-    public ReservationResponseDto createReservation(ReservationRequestDto requestDto, String email) {
+    public ReservationResponse createReservation(ReservationCreateRequest requestDto, String email) {
 
-        ConcertEntity concertEntity = concertRepository
-                .findById(requestDto.concertId())
+        ConcertEntity concertEntity = concertRepository.findById(requestDto.getConcertId())
                 .orElseThrow(() -> new EntityNotFoundException("Concert not found"));
 
         SeatEntity seatEntity = seatRepository
-                .findById(requestDto.seatId())
+                .findById(requestDto.getSeatId())
                 .orElseThrow(() -> new EntityNotFoundException("Seat not found"));
-
 
         ReservationEntity reservation = ReservationEntity.builder()
                 .reserverEmail(email)
-                .status(StatusEnum.PROGRESS)
+                .status(StatusEnum.TEMP_RESERVED)
                 .build();
 
         // 연관관계 설정
         reservation.addSeat(seatEntity);
         reservation.addConcert(concertEntity);
 
-        ReservationEntity saved = reservationRepository.save(reservation);
-        return new ReservationResponseDto(
-                new SeatDto(
-                        seatEntity.getSeatNumber(),
-                        seatEntity.getSection(),
-                        seatEntity.getGrade(),
-                        seatEntity.getPrice()
+        // 예약 저장
+        ReservationEntity savedReservation = reservationRepository.save(reservation);
+
+        // 주소 정보가 있는 경우 전체 주소 문자열 생성
+        String addressInfo = savedReservation.getConcert().getVenue().getAddress() != null
+                ? savedReservation.getConcert().getVenue().getAddress().getFullAddress()
+                : "";
+
+        return new ReservationResponse(
+                savedReservation.getId(),
+                new ReservationResponse.SeatInfo(
+                        savedReservation.getSeat().getId(),
+                        savedReservation.getSeat().getSeatNumber(),
+                        savedReservation.getSeat().getSection(),
+                        savedReservation.getSeat().getGrade(),
+                        savedReservation.getSeat().getPrice()
                 ),
-                new ConcertDto(
-                        concertEntity.getName(),
-                        concertEntity.getDate(),
-                        concertEntity.getLocation()
+                new ReservationResponse.ConcertInfo(
+                        savedReservation.getConcert().getId(),
+                        savedReservation.getConcert().getName(),
+                        savedReservation.getConcert().getDate(),
+                        savedReservation.getConcert().getVenue().getName(),
+                        addressInfo
                 ),
-                saved.getReserverEmail(),
-                saved.getCreateAt(),
-                saved.getStatus()
+                savedReservation.getReserverEmail(),
+                savedReservation.getCreateAt(),
+                savedReservation.getExpiresAt(),
+                savedReservation.getStatus()
         );
     }
 
-    // 취소
+
+   // 취소
     @Transactional
-    public void deleteReservation(Long id) {
+    public void cancelReservation(Long id) {
         ReservationEntity reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
-        reservation.updateStatus(StatusEnum.CANCEL);
+        reservation.updateStatus(StatusEnum.CANCELLED);
         reservationRepository.save(reservation);
-
     }
+
+/*
+    // 공연 목록 조회
+    @Transactional(readOnly = true)
+    public List<ConcertDto> getConcerts() {
+        List<ConcertEntity> concertEntities = concertRepository.findAll();
+        return concertEntities.stream()
+                .map(concert -> new ConcertDto(
+                        concert.getName(),
+                        concert.getDate(),
+                        concert.getLocation()
+                ))
+                .toList();
+    }
+
+    // 공연 상세 조회
+    @Transactional(readOnly = true)
+    public ConcertDto getConcertDetails(Long concertId) {
+        ConcertEntity concertEntity = concertRepository
+                .findById(concertId)
+                .orElseThrow(() -> new EntityNotFoundException("Concert not found"));
+
+        return new ConcertDto(
+                concertEntity.getName(),
+                concertEntity.getDate(),
+                concertEntity.getLocation()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<SeatDto> getSeats() {}*/
+
 }
 
