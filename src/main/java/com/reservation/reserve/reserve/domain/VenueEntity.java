@@ -35,5 +35,19 @@ public class VenueEntity {
     @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL)
     @Builder.Default
     private List<ConcertEntity> concerts = new ArrayList<>();
-}
 
+    // 연관관계 편의 메서드
+    public void addSeat(SeatEntity seat) {
+        this.seats.add(seat);
+        if (seat.getVenue() != this) {
+            seat.addVenue(this);
+        }
+    }
+
+    public void addConcert(ConcertEntity concert) {
+        this.concerts.add(concert);
+        if (concert.getVenue() != this) {
+            concert.addVenue(this);
+        }
+    }
+}

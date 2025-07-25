@@ -1,9 +1,45 @@
 package com.reservation.reserve.reserve.repository;
 
 import com.reservation.reserve.reserve.domain.ReservationEntity;
+import com.reservation.reserve.reserve.domain.StatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<ReservationEntity, Long> {
+
+    /**
+     * 특정 콘서트의 특정 좌석에 대한 활성 예약(TEMP_RESERVED, CONFIRMED) 존재 여부 확인
+     */
+    @Query("SELECT r FROM ReservationEntity r WHERE r.concert.id = :concertId AND r.seat.id = :seatId " +
+           "AND r.status IN ('TEMP_RESERVED', 'CONFIRMED')")
+    Optional<ReservationEntity> findActiveByConcertAndSeat(@Param("concertId") Long concertId,
+                                                          @Param("seatId") Long seatId);
+
+    /**
+     * 만료된 임시 예약 조회
+     */
+    @Query("SELECT r FROM ReservationEntity r WHERE r.status = 'TEMP_RESERVED' AND r.expiresAt < :now")
+    List<ReservationEntity> findExpiredTempReservations(@Param("now") LocalDateTime now);
+
+    /**
+     * 특정 이메일의 예약 목록 조회
+     */
+    List<ReservationEntity> findByReserverEmailOrderByCreateAtDesc(String reserverEmail);
+
+    /**
+     * 특정 콘서트의 예약 목록 조회
+     */
+    List<ReservationEntity> findByConcertIdOrderByCreateAtDesc(Long concertId);
+
+    /**
+     * 특정 상태의 예약 개수 조회
+     */
+    long countByStatus(StatusEnum status);
 }

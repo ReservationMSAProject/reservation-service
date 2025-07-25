@@ -18,14 +18,11 @@ import java.time.LocalDateTime;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "reservation", 
-       uniqueConstraints = {
-           @UniqueConstraint(name = "uk_concert_seat_active", 
-                           columnNames = {"concert_id", "seat_id"})
-       },
        indexes = {
            @Index(name = "idx_reservation_status", columnList = "status"),
            @Index(name = "idx_reservation_expires", columnList = "expires_at"),
-           @Index(name = "idx_reservation_email", columnList = "reserver_email")
+           @Index(name = "idx_reservation_email", columnList = "reserver_email"),
+           @Index(name = "idx_concert_seat_status", columnList = "concert_id, seat_id, status")
        })
 public class ReservationEntity {
 
