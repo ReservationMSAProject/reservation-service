@@ -31,7 +31,7 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     /**
      * 특정 상태의 예약 개수 조회
      */
-    long countByStatus(StatusEnum status);
+    List<ReservationEntity> findAllByReserverEmailIgnoreCaseOrderByCreateAtDesc(String email);
 
     /**
      * 특정 콘서트와 좌석에 대한 임시 예약 존재 여부 확인
@@ -45,10 +45,30 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     /**
      * 특정 이메일에 대한 모든 예약 조회 (대소문자 구분 없음)
      */
+    @Query("SELECT r FROM ReservationEntity r " +
+            "JOIN FETCH r.seat " +
+            "JOIN FETCH r.concert c " +
+            "JOIN FETCH c.venue " +
+            "WHERE r.reserverEmail = :email")
     List<ReservationEntity> findAllByReserverEmail(String email);
 
     /**
      * 특정 콘서트와 좌석에 대한 모든 예약 조회
      */
-    List<ReservationEntity> findAllByConcertIdAndSeatId(Long concertId, Long seatId);
+    @Query("SELECT r FROM ReservationEntity r " +
+            "JOIN FETCH r.seat " +
+            "JOIN FETCH r.concert c " +
+            "JOIN FETCH c.venue " +
+            "WHERE r.concert.id = :concertId AND r.seat.id = :seatId")
+    List<ReservationEntity> findAllByConcertIdAndSeatId(@Param("concertId") Long concertId, @Param("seatId") Long seatId);
+
+    /**
+     * 예약 ID로 예약 조회 (좌석, 콘서트, 공연장 정보 포함)
+     */
+    @Query("SELECT r FROM ReservationEntity r " +
+            "JOIN FETCH r.seat " +
+            "JOIN FETCH r.concert c " +
+            "JOIN FETCH c.venue " +
+            "WHERE r.id = :reservationId")
+    Optional<ReservationEntity> findByIdWithDetails(@Param("reservationId") Long reservationId);
 }

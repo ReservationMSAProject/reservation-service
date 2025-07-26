@@ -33,17 +33,22 @@ public class ReservationService {
     // 저장
     @Transactional
     public ReservationResponse createReservation(ReservationCreateRequest requestDto, String email) {
-
-        if (!checkSeatAvailability(requestDto.getConcertId(), requestDto.getSeatId())) {
-            throw new IllegalArgumentException("The seat is not available for reservation.");
-        }
-
         ConcertEntity concertEntity = concertRepository.findById(requestDto.getConcertId())
                 .orElseThrow(() -> new EntityNotFoundException("Concert not found"));
 
-        SeatEntity seatEntity = seatRepository
-                .findById(requestDto.getSeatId())
+        SeatEntity seatEntity = seatRepository.findById(requestDto.getSeatId())
                 .orElseThrow(() -> new EntityNotFoundException("Seat not found"));
+
+        // 좌석 예약 가능 여부 확인
+        boolean isAvailable = !reservationRepository.existsByConcertIdAndSeatIdAndStatusIn(
+                requestDto.getConcertId(),
+                requestDto.getSeatId(),
+                List.of(StatusEnum.TEMP_RESERVED, StatusEnum.CONFIRMED)
+        );
+
+        if (!isAvailable) {
+            throw new IllegalArgumentException("The seat is not available for reservation.");
+        }
 
         ReservationEntity reservation = ReservationEntity.builder()
                 .reserverEmail(email)
@@ -95,26 +100,9 @@ public class ReservationService {
     }
 
 
-    // 특정 콘서트의 특정 좌석에 대한 활성 예약 존재 여부 확인
-    @Transactional(readOnly = true)
-    protected boolean checkSeatAvailability(Long concertId, Long seatId) {
-        boolean concertExists = concertRepository.existsById(concertId);
-        boolean seatExists = seatRepository.existsById(seatId);
-        if (!concertExists || !seatExists) {
-            return false;
-        }
-        // 해당 콘서트의 해당 좌석이 예약 가능한지 확인
-        return !reservationRepository.existsByConcertIdAndSeatIdAndStatusIn(
-                concertId,
-                seatId,
-                List.of(StatusEnum.TEMP_RESERVED, StatusEnum.CONFIRMED)
-        );
-    }
-
     // 예약 조회
-    @Transactional(readOnly = true)
     public ReservationResponse getReservation(Long reservationId){
-        return reservationRepository.findById(reservationId)
+        return reservationRepository.findByIdWithDetails(reservationId)
                 .map(getReservationEntityReservationResponseFunction())
                 .orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
     }

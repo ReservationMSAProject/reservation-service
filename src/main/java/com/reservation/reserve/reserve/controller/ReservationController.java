@@ -34,7 +34,7 @@ public class ReservationController {
 
     // 예약 취소
     @PutMapping("/cancel/{reservationId}")
-    @RequireAuth(roles = {"ADMIN"})
+    @RequireAuth(roles = {"USER", "ADMIN"})
     public ResponseEntity<ApiResponse<Void>>  cancelReservation(@PathVariable("reservationId") Long reservationId) {
 
         reservationService.cancelReservation(reservationId);
@@ -44,6 +44,7 @@ public class ReservationController {
 
     // 예약 단건 조회 (예약 ID로)
     @GetMapping("/check/{reservationId}")
+    @RequireAuth(roles = {"USER"})
     public ResponseEntity<ApiResponse<ReservationResponse>> getReservationById(@PathVariable("reservationId") Long reservationId) {
 
         ReservationResponse response = reservationService.getReservation(reservationId);
@@ -51,7 +52,8 @@ public class ReservationController {
     }
 
     // 특정 이메일(사용자)의 모든 예약 조회
-    @GetMapping("/check/reservation")
+    @GetMapping("/mine")
+    @RequireAuth(roles = {"USER", "ADMIN"})
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getAllReservationsByUserEmail() {
 
         String email = UserContext.getCurrentUser().getUserId();
@@ -61,6 +63,7 @@ public class ReservationController {
 
     // 특정 콘서트와 좌석에 대한 모든 예약 목록 조회
     @GetMapping("/concert/{concertId}/seat/{seatId}")
+    @RequireAuth(roles = {"ADMIN"})
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getAllReservationsByConcertIdAndSeatId(
             @PathVariable("concertId") Long concertId,
             @PathVariable("seatId") Long seatId) {
