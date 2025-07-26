@@ -29,17 +29,46 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     List<ReservationEntity> findExpiredTempReservations(@Param("now") LocalDateTime now);
 
     /**
-     * 특정 이메일의 예약 목록 조회
-     */
-    List<ReservationEntity> findByReserverEmailOrderByCreateAtDesc(String reserverEmail);
-
-    /**
-     * 특정 콘서트의 예약 목록 조회
-     */
-    List<ReservationEntity> findByConcertIdOrderByCreateAtDesc(Long concertId);
-
-    /**
      * 특정 상태의 예약 개수 조회
      */
-    long countByStatus(StatusEnum status);
+    List<ReservationEntity> findAllByReserverEmailIgnoreCaseOrderByCreateAtDesc(String email);
+
+    /**
+     * 특정 콘서트와 좌석에 대한 임시 예약 존재 여부 확인
+     */
+    boolean existsByConcertIdAndSeatIdAndStatusIn(
+            Long concertId,
+            Long seatId,
+            List<StatusEnum> tempReserved
+    );
+
+    /**
+     * 특정 이메일에 대한 모든 예약 조회 (대소문자 구분 없음)
+     */
+    @Query("SELECT r FROM ReservationEntity r " +
+            "JOIN FETCH r.seat " +
+            "JOIN FETCH r.concert c " +
+            "JOIN FETCH c.venue " +
+            "WHERE LOWER(r.reserverEmail) = LOWER(:email)")
+    List<ReservationEntity> findAllByReserverEmail(@Param("email") String email);
+
+    /**
+     * 특정 콘서트와 좌석에 대한 모든 예약 조회
+     */
+    @Query("SELECT r FROM ReservationEntity r " +
+            "JOIN FETCH r.seat " +
+            "JOIN FETCH r.concert c " +
+            "JOIN FETCH c.venue " +
+            "WHERE r.concert.id = :concertId AND r.seat.id = :seatId " +
+            "ORDER BY r.createAt DESC")
+    List<ReservationEntity> findAllByConcertIdAndSeatId(@Param("concertId") Long concertId, @Param("seatId") Long seatId);
+    /**
+     * 예약 ID로 예약 조회 (좌석, 콘서트, 공연장 정보 포함)
+     */
+    @Query("SELECT r FROM ReservationEntity r " +
+            "JOIN FETCH r.seat " +
+            "JOIN FETCH r.concert c " +
+            "JOIN FETCH c.venue " +
+            "WHERE r.id = :reservationId")
+    Optional<ReservationEntity> findByIdWithDetails(@Param("reservationId") Long reservationId);
 }
