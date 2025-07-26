@@ -16,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.function.Function;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,6 +33,10 @@ public class ReservationService {
     // 저장
     @Transactional
     public ReservationResponse createReservation(ReservationCreateRequest requestDto, String email) {
+
+        if (!checkSeatAvailability(requestDto.getConcertId(), requestDto.getSeatId())) {
+            throw new IllegalArgumentException("The seat is not available for reservation.");
+        }
 
         ConcertEntity concertEntity = concertRepository.findById(requestDto.getConcertId())
                 .orElseThrow(() -> new EntityNotFoundException("Concert not found"));
@@ -78,7 +85,6 @@ public class ReservationService {
         );
     }
 
-
    // 취소
     @Transactional
     public void cancelReservation(Long id) {
@@ -88,36 +94,84 @@ public class ReservationService {
         reservationRepository.save(reservation);
     }
 
-/*
-    // 공연 목록 조회
-    @Transactional(readOnly = true)
-    public List<ConcertDto> getConcerts() {
-        List<ConcertEntity> concertEntities = concertRepository.findAll();
-        return concertEntities.stream()
-                .map(concert -> new ConcertDto(
-                        concert.getName(),
-                        concert.getDate(),
-                        concert.getLocation()
-                ))
-                .toList();
-    }
 
-    // 공연 상세 조회
+    // 특정 콘서트의 특정 좌석에 대한 활성 예약 존재 여부 확인
     @Transactional(readOnly = true)
-    public ConcertDto getConcertDetails(Long concertId) {
-        ConcertEntity concertEntity = concertRepository
-                .findById(concertId)
-                .orElseThrow(() -> new EntityNotFoundException("Concert not found"));
-
-        return new ConcertDto(
-                concertEntity.getName(),
-                concertEntity.getDate(),
-                concertEntity.getLocation()
+    protected boolean checkSeatAvailability(Long concertId, Long seatId) {
+        boolean concertExists = concertRepository.existsById(concertId);
+        boolean seatExists = seatRepository.existsById(seatId);
+        if (!concertExists || !seatExists) {
+            return false;
+        }
+        // 해당 콘서트의 해당 좌석이 예약 가능한지 확인
+        return !reservationRepository.existsByConcertIdAndSeatIdAndStatusIn(
+                concertId,
+                seatId,
+                List.of(StatusEnum.TEMP_RESERVED, StatusEnum.CONFIRMED)
         );
     }
 
+    // 예약 조회
     @Transactional(readOnly = true)
-    public List<SeatDto> getSeats() {}*/
+    public ReservationResponse getReservation(Long reservationId){
+        return reservationRepository.findById(reservationId)
+                .map(getReservationEntityReservationResponseFunction())
+                .orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
+    }
+
+
+
+    // 특정 이메일에 대한 모든 예약 조회
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> getAllReservationsByEmail(String email) {
+        List<ReservationEntity> reservations = reservationRepository.findAllByReserverEmail(email);
+
+        return reservations.stream()
+                .map(getReservationEntityReservationResponseFunction())
+                .toList();
+    }
+
+    // 특정 콘서트와 좌석에 대한 예약 조회
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> getReservationsByConcertAndSeat(Long concertId, Long seatId){
+        List<ReservationEntity> reservations = reservationRepository.findAllByConcertIdAndSeatId(concertId, seatId);
+
+        return reservations.stream()
+                .map(getReservationEntityReservationResponseFunction())
+                .toList();
+    }
+
+    // 예약 엔티티를 예약 응답으로 변환하는 함수
+    // 이 함수는 중복 코드를 줄이기 위해 사용됩니다.
+    private static Function<ReservationEntity, ReservationResponse> getReservationEntityReservationResponseFunction() {
+        return reservation -> new ReservationResponse(
+                reservation.getId(),
+                new ReservationResponse.SeatInfo(
+                        reservation.getSeat().getId(),
+                        reservation.getSeat().getSeatNumber(),
+                        reservation.getSeat().getSection(),
+                        reservation.getSeat().getGrade(),
+                        reservation.getSeat().getPrice()
+                ),
+                new ReservationResponse.ConcertInfo(
+                        reservation.getConcert().getId(),
+                        reservation.getConcert().getName(),
+                        reservation.getConcert().getDate(),
+                        reservation.getConcert().getVenue().getName(),
+                        reservation.getConcert().getVenue().getAddress() != null
+                                ? reservation.getConcert().getVenue().getAddress().getFullAddress()
+                                : ""
+                ),
+                reservation.getReserverEmail(),
+                reservation.getCreateAt(),
+                reservation.getExpiresAt(),
+                reservation.getStatus()
+
+        );
+    }
+
+
+
 
 }
 

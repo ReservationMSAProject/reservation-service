@@ -29,17 +29,26 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     List<ReservationEntity> findExpiredTempReservations(@Param("now") LocalDateTime now);
 
     /**
-     * 특정 이메일의 예약 목록 조회
-     */
-    List<ReservationEntity> findByReserverEmailOrderByCreateAtDesc(String reserverEmail);
-
-    /**
-     * 특정 콘서트의 예약 목록 조회
-     */
-    List<ReservationEntity> findByConcertIdOrderByCreateAtDesc(Long concertId);
-
-    /**
      * 특정 상태의 예약 개수 조회
      */
     long countByStatus(StatusEnum status);
+
+    /**
+     * 특정 콘서트와 좌석에 대한 임시 예약 존재 여부 확인
+     */
+    boolean existsByConcertIdAndSeatIdAndStatusIn(
+            Long concertId,
+            Long seatId,
+            List<StatusEnum> tempReserved
+    );
+
+    /**
+     * 특정 이메일에 대한 모든 예약 조회 (대소문자 구분 없음)
+     */
+    List<ReservationEntity> findAllByReserverEmail(String email);
+
+    /**
+     * 특정 콘서트와 좌석에 대한 모든 예약 조회
+     */
+    List<ReservationEntity> findAllByConcertIdAndSeatId(Long concertId, Long seatId);
 }
