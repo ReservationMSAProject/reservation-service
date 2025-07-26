@@ -49,8 +49,8 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
             "JOIN FETCH r.seat " +
             "JOIN FETCH r.concert c " +
             "JOIN FETCH c.venue " +
-            "WHERE r.reserverEmail = :email")
-    List<ReservationEntity> findAllByReserverEmail(String email);
+            "WHERE LOWER(r.reserverEmail) = LOWER(:email)")
+    List<ReservationEntity> findAllByReserverEmail(@Param("email") String email);
 
     /**
      * 특정 콘서트와 좌석에 대한 모든 예약 조회
@@ -59,9 +59,9 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
             "JOIN FETCH r.seat " +
             "JOIN FETCH r.concert c " +
             "JOIN FETCH c.venue " +
-            "WHERE r.concert.id = :concertId AND r.seat.id = :seatId")
+            "WHERE r.concert.id = :concertId AND r.seat.id = :seatId " +
+            "ORDER BY r.createAt DESC")
     List<ReservationEntity> findAllByConcertIdAndSeatId(@Param("concertId") Long concertId, @Param("seatId") Long seatId);
-
     /**
      * 예약 ID로 예약 조회 (좌석, 콘서트, 공연장 정보 포함)
      */

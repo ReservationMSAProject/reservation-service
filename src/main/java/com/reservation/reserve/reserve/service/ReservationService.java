@@ -101,6 +101,7 @@ public class ReservationService {
 
 
     // 예약 조회
+    @Transactional(readOnly = true)
     public ReservationResponse getReservation(Long reservationId){
         return reservationRepository.findByIdWithDetails(reservationId)
                 .map(getReservationEntityReservationResponseFunction())
