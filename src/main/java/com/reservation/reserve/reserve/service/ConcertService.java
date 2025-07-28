@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +47,7 @@ public class ConcertService {
     @Transactional(readOnly = true)
     public ConcertDetailResponse getAvailableSeats(Long concertId) {
 
-        ConcertEntity concert = concertRepository.findByIdWithVenue(concertId)
+        ConcertEntity concert = concertRepository.findById(concertId)
                 .orElseThrow(() -> new EntityNotFoundException("콘서트를 찾을 수 없습니다."));
 
         // 해당 콘서트에서 예약 가능한 좌석 목록
@@ -53,6 +55,7 @@ public class ConcertService {
 
         // 해당 공연장의 모든 좌석 조회
         List<SeatEntity> allSeats = concert.getVenue().getSeats();
+        Set<SeatEntity> availableSeatSet = new HashSet<>(availableSeats);
 
         return new ConcertDetailResponse(
                 concert.getId(),
@@ -69,7 +72,7 @@ public class ConcertService {
                                 seat.getSeatNumber(),
                                 seat.getSection(),
                                 seat.getGrade(),
-                                availableSeats.contains(seat),
+                                availableSeatSet.contains(seat),
                                 seat.getPrice()
                         ))
                         .toList()

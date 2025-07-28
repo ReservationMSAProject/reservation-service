@@ -1,6 +1,7 @@
 package com.reservation.reserve.reserve.repository;
 
 import com.reservation.reserve.reserve.domain.ConcertEntity;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,6 +36,6 @@ public interface ConcertRepository extends JpaRepository<ConcertEntity, Long> {
     List<ConcertEntity> findPastConcertsByDate(LocalDateTime date);
 
     // 특정 콘서트 ID로 콘서트를 조회하고, 공연장과 주소를 함께 가져오는 쿼리
-    @Query("SELECT c FROM ConcertEntity c JOIN FETCH c.venue v LEFT JOIN FETCH v.address WHERE c.id = :id")
-    Optional<ConcertEntity> findByIdWithVenue(@Param("id") Long id);
+    @EntityGraph(attributePaths = {"venue", "venue.seats"})
+    Optional<ConcertEntity> findById(@Param("id") Long id);
 }
