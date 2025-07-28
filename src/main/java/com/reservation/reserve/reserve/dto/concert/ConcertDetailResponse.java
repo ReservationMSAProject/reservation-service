@@ -30,7 +30,7 @@ public class ConcertDetailResponse {
         private String seatNumber;
         private String section;
         private String grade;
-        private boolean active;
+        private boolean available;
         private long price;
     }
 }

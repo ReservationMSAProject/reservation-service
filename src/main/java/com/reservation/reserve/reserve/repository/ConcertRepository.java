@@ -34,7 +34,7 @@ public interface ConcertRepository extends JpaRepository<ConcertEntity, Long> {
             """)
     List<ConcertEntity> findPastConcertsByDate(LocalDateTime date);
 
-
-    @Query("SELECT c FROM ConcertEntity c JOIN FETCH c.venue WHERE c.id = :id")
+    // 특정 콘서트 ID로 콘서트를 조회하고, 공연장과 주소를 함께 가져오는 쿼리
+    @Query("SELECT c FROM ConcertEntity c JOIN FETCH c.venue v LEFT JOIN FETCH v.address WHERE c.id = :id")
     Optional<ConcertEntity> findByIdWithVenue(@Param("id") Long id);
 }

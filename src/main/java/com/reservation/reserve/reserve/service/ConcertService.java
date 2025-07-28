@@ -48,7 +48,11 @@ public class ConcertService {
         ConcertEntity concert = concertRepository.findByIdWithVenue(concertId)
                 .orElseThrow(() -> new EntityNotFoundException("콘서트를 찾을 수 없습니다."));
 
-        List<SeatEntity> availableSeatsByConcert = seatRepository.findAvailableSeatsByConcert(concert.getVenue(), concert);
+        // 해당 콘서트에서 예약 가능한 좌석 목록
+        List<SeatEntity> availableSeats = seatRepository.findAvailableSeatsByConcert(concert.getVenue(), concert);
+
+        // 해당 공연장의 모든 좌석 조회
+        List<SeatEntity> allSeats = concert.getVenue().getSeats();
 
         return new ConcertDetailResponse(
                 concert.getId(),
@@ -59,13 +63,13 @@ public class ConcertService {
                         concert.getVenue().getName(),
                         concert.getVenue().getAddress().getFullAddress()
                 ),
-                availableSeatsByConcert.stream()
+                allSeats.stream()
                         .map(seat -> new ConcertDetailResponse.SeatInfo(
                                 seat.getId(),
                                 seat.getSeatNumber(),
                                 seat.getSection(),
                                 seat.getGrade(),
-                                seat.isActive(),
+                                availableSeats.contains(seat),
                                 seat.getPrice()
                         ))
                         .toList()

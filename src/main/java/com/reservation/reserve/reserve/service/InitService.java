@@ -108,7 +108,6 @@ public class InitService {
                         .section(section)
                         .grade(grade)
                         .price(price)
-                        .active(active)
                         .build();
                 seat.addVenue(venue);
                 seats.add(seat);
@@ -163,10 +162,6 @@ public class InitService {
                 reservation.addConcert(concert);
                 reservation.addSeat(seat);
 
-                // 예약 상태에 따라 좌석 active 상태 업데이트
-                if (status == StatusEnum.CONFIRMED || status == StatusEnum.TEMP_RESERVED) {
-                    seat.updateActiveStatus(false); // 예약된 좌석은 비활성화
-                }
 
                 if (status == StatusEnum.TEMP_RESERVED) {
                     reservation.setExpirationTime(5);

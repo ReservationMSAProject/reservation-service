@@ -13,8 +13,7 @@ import java.util.List;
 @Repository
 public interface SeatRepository extends JpaRepository<SeatEntity, Long> {
 
-
-    //콘서트의 빈 좌석 조회
+    // 콘서트의 예약 가능한 좌석 조회
     @Query("""
                 SELECT s FROM SeatEntity s
                 WHERE s.venue = :venue AND NOT EXISTS (
