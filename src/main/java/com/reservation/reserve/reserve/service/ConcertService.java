@@ -47,7 +47,7 @@ public class ConcertService {
     @Transactional(readOnly = true)
     public ConcertDetailResponse getAvailableSeats(Long concertId) {
 
-        ConcertEntity concert = concertRepository.findById(concertId)
+        ConcertEntity concert = concertRepository.findWithDetailsById(concertId)
                 .orElseThrow(() -> new EntityNotFoundException("콘서트를 찾을 수 없습니다."));
 
         // 해당 콘서트에서 예약 가능한 좌석 목록

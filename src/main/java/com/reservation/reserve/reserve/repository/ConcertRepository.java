@@ -37,5 +37,5 @@ public interface ConcertRepository extends JpaRepository<ConcertEntity, Long> {
 
     // 특정 콘서트 ID로 콘서트를 조회하고, 공연장과 주소를 함께 가져오는 쿼리
     @EntityGraph(attributePaths = {"venue", "venue.seats"})
-    Optional<ConcertEntity> findById(@Param("id") Long id);
+    Optional<ConcertEntity> findWithDetailsById(@Param("id") Long id);
 }
