@@ -23,7 +23,7 @@ public interface ConcertRepository extends JpaRepository<ConcertEntity, Long> {
             WHERE c.date >= :date
             ORDER BY c.date, c.name
             """)
-    List<ConcertEntity> findConcertByDate(LocalDateTime date);
+    List<ConcertEntity> findConcertByDate(@Param("date") LocalDateTime date);
 
     // 오늘 날짜 이전의 콘서트 목록을 조회하는 쿼리
     @Query("""
@@ -33,7 +33,7 @@ public interface ConcertRepository extends JpaRepository<ConcertEntity, Long> {
             WHERE c.date < :date
             ORDER BY c.date, c.name
             """)
-    List<ConcertEntity> findPastConcertsByDate(LocalDateTime date);
+    List<ConcertEntity> findPastConcertsByDate(@Param("date") LocalDateTime date);
 
     // 특정 콘서트 ID로 콘서트를 조회하고, 공연장과 주소를 함께 가져오는 쿼리
     @EntityGraph(attributePaths = {"venue", "venue.seats"})
