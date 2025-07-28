@@ -2,6 +2,7 @@ package com.reservation.reserve.reserve.service;
 
 import com.reservation.reserve.reserve.domain.ConcertEntity;
 import com.reservation.reserve.reserve.domain.SeatEntity;
+import com.reservation.reserve.reserve.domain.StatusEnum;
 import com.reservation.reserve.reserve.dto.concert.ConcertDetailResponse;
 import com.reservation.reserve.reserve.dto.concert.ConcertResponse;
 import com.reservation.reserve.reserve.repository.ConcertRepository;
@@ -51,7 +52,7 @@ public class ConcertService {
                 .orElseThrow(() -> new EntityNotFoundException("콘서트를 찾을 수 없습니다."));
 
         // 해당 콘서트에서 예약 가능한 좌석 목록
-        List<SeatEntity> availableSeats = seatRepository.findAvailableSeatsByConcert(concert.getVenue(), concert);
+        List<SeatEntity> availableSeats = seatRepository.findAvailableSeatsByConcert(concert.getVenue(), concert, List.of(StatusEnum.TEMP_RESERVED, StatusEnum.CONFIRMED));
 
         // 해당 공연장의 모든 좌석 조회
         List<SeatEntity> allSeats = concert.getVenue().getSeats();
