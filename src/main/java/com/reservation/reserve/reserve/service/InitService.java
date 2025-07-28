@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 //@Service
 @RequiredArgsConstructor
@@ -23,7 +25,6 @@ public class InitService {
 //    @PostConstruct
 //    @Transactional
     public void init() {
-        // 데이터가 이미 있는지 확인
         if (venueRepository.count() > 0) {
             System.out.println("초기 데이터가 이미 존재합니다.");
             return;
@@ -33,15 +34,15 @@ public class InitService {
         List<VenueEntity> venues = createVenues();
         venueRepository.saveAll(venues);
 
-        // 2. 좌석 10개 생성 (각 공연장마다)
+        // 2. 각 공연장마다 좌석 30개 생성
         List<SeatEntity> seats = createSeats(venues);
         seatRepository.saveAll(seats);
 
-        // 3. 콘서트 10개 생성
+        // 3. 콘서트 3개 생성 (각기 다른 공연장에 할당)
         List<ConcertEntity> concerts = createConcerts(venues);
         concertRepository.saveAll(concerts);
 
-        // 4. 예약 10개 생성
+        // 4. 각 콘서트별로 5~10개 예약 생성
         List<ReservationEntity> reservations = createReservations(concerts, seats);
         reservationRepository.saveAll(reservations);
 
@@ -51,10 +52,9 @@ public class InitService {
 
     private List<VenueEntity> createVenues() {
         List<VenueEntity> venues = new ArrayList<>();
-
         venues.add(VenueEntity.builder()
                 .name("올림픽공원 체조경기장")
-                .totalCapacity(10000)
+                .totalCapacity(30000)
                 .address(AddressVO.builder()
                         .postalCode("05540")
                         .province("서울특별시")
@@ -67,7 +67,7 @@ public class InitService {
 
         venues.add(VenueEntity.builder()
                 .name("KSPO DOME")
-                .totalCapacity(15000)
+                .totalCapacity(30000)
                 .address(AddressVO.builder()
                         .postalCode("05540")
                         .province("서울특별시")
@@ -80,7 +80,7 @@ public class InitService {
 
         venues.add(VenueEntity.builder()
                 .name("고척 스카이돔")
-                .totalCapacity(20000)
+                .totalCapacity(30000)
                 .address(AddressVO.builder()
                         .postalCode("07807")
                         .province("서울특별시")
@@ -96,98 +96,84 @@ public class InitService {
 
     private List<SeatEntity> createSeats(List<VenueEntity> venues) {
         List<SeatEntity> seats = new ArrayList<>();
-
-        for (int venueIdx = 0; venueIdx < venues.size(); venueIdx++) {
-            VenueEntity venue = venues.get(venueIdx);
-
-            for (int i = 1; i <= 10; i++) {
-                String section = i <= 5 ? "VIP" : "일반";
-                long price = i <= 5 ? 150000L : 80000L;
-                String grade = i <= 3 ? "S" : i <= 7 ? "A" : "B";
+        for (VenueEntity venue : venues) {
+            for (int i = 1; i <= 30; i++) {
+                String section = i <= 10 ? "VIP" : i <= 20 ? "R" : "S";
+                long price = i <= 10 ? 150000L : i <= 20 ? 100000L : 70000L;
+                String grade = i <= 10 ? "S" : i <= 20 ? "A" : "B";
+                boolean active = i % 7 != 0;
 
                 SeatEntity seat = SeatEntity.builder()
-                        .seatNumber(String.format("%s-%d", section.equals("VIP") ? "V" : "G", i))
+                        .seatNumber(String.format("%s-%02d", section, i))
                         .section(section)
                         .grade(grade)
                         .price(price)
+                        .active(active)
                         .build();
-
                 seat.addVenue(venue);
                 seats.add(seat);
             }
         }
-
         return seats;
     }
 
     private List<ConcertEntity> createConcerts(List<VenueEntity> venues) {
         List<ConcertEntity> concerts = new ArrayList<>();
         String[] concertNames = {
-            "BTS 월드투어 서울 공연",
-            "아이유 콘서트 '더 골든 아워'",
-            "뉴진스 1st 콘서트",
-            "임영웅 전국투어 서울 공연",
-            "르세라핌 첫 단독 콘서트",
-            "세븐틴 월드투어",
-            "스트레이키즈 도미네이트 투어",
-            "에스파 2025 콘서트",
-            "엔시티 드림 투어",
-            "아일릿 데뷔 콘서트"
+                "BTS 월드투어 서울 공연",
+                "아이유 콘서트 '더 골든 아워'",
+                "뉴진스 1st 콘서트"
         };
 
         LocalDateTime baseDate = LocalDateTime.now().plusDays(30);
-
-        for (int i = 0; i < 10; i++) {
-            VenueEntity venue = venues.get(i % venues.size());
-
+        for (int i = 0; i < 3; i++) {
             ConcertEntity concert = ConcertEntity.builder()
                     .name(concertNames[i])
-                    .date(baseDate.plusDays(i * 7).plusHours(19)) // 매주 토요일 오후 7시
+                    .date(baseDate.plusDays(i * 7).plusHours(19))
                     .build();
-
-            concert.addVenue(venue);
+            concert.addVenue(venues.get(i));
             concerts.add(concert);
         }
-
         return concerts;
     }
 
-    private List<ReservationEntity> createReservations(List<ConcertEntity> concerts, List<SeatEntity> seats) {
+    private List<ReservationEntity> createReservations(List<ConcertEntity> concerts, List<SeatEntity> allSeats) {
         List<ReservationEntity> reservations = new ArrayList<>();
-        String[] emails = {
-            "user1@example.com", "user2@example.com", "user3@example.com",
-            "user4@example.com", "user5@example.com", "user6@example.com",
-            "user7@example.com", "user8@example.com", "user9@example.com",
-            "user10@example.com"
-        };
+        Random random = new Random();
+        int emailSeq = 1;
 
-        StatusEnum[] statuses = {
-            StatusEnum.CONFIRMED, StatusEnum.CONFIRMED, StatusEnum.TEMP_RESERVED,
-            StatusEnum.CONFIRMED, StatusEnum.CANCELLED, StatusEnum.CONFIRMED,
-            StatusEnum.TEMP_RESERVED, StatusEnum.EXPIRED, StatusEnum.CONFIRMED,
-            StatusEnum.TEMP_RESERVED
-        };
+        for (ConcertEntity concert : concerts) {
+            List<SeatEntity> venueSeats = allSeats.stream()
+                    .filter(seat -> seat.getVenue().getName().equals(concert.getVenue().getName()))
+                    .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 
-        for (int i = 0; i < 10; i++) {
-            ConcertEntity concert = concerts.get(i);
-            SeatEntity seat = seats.get(i);
+            Collections.shuffle(venueSeats);
 
-            ReservationEntity reservation = ReservationEntity.builder()
-                    .reserverEmail(emails[i])
-                    .status(statuses[i])
-                    .build();
+            int reservationCount = 5 + random.nextInt(6);
+            for (int i = 0; i < Math.min(reservationCount, venueSeats.size()); i++) {
+                SeatEntity seat = venueSeats.get(i);
+                StatusEnum status = StatusEnum.values()[random.nextInt(StatusEnum.values().length)];
+                String email = "user" + (emailSeq++) + "@example.com";
 
-            reservation.addConcert(concert);
-            reservation.addSeat(seat);
+                ReservationEntity reservation = ReservationEntity.builder()
+                        .reserverEmail(email)
+                        .status(status)
+                        .build();
 
-            // TEMP_RESERVED 상태인 경우 만료 시간 설정
-            if (statuses[i] == StatusEnum.TEMP_RESERVED) {
-                reservation.setExpirationTime(5); // 5분 후 만료
+                reservation.addConcert(concert);
+                reservation.addSeat(seat);
+
+                // 예약 상태에 따라 좌석 active 상태 업데이트
+                if (status == StatusEnum.CONFIRMED || status == StatusEnum.TEMP_RESERVED) {
+                    seat.updateActiveStatus(false); // 예약된 좌석은 비활성화
+                }
+
+                if (status == StatusEnum.TEMP_RESERVED) {
+                    reservation.setExpirationTime(5);
+                }
+                reservations.add(reservation);
             }
-
-            reservations.add(reservation);
         }
-
         return reservations;
     }
 }

@@ -34,6 +34,10 @@ public class SeatEntity {
     @Column(name = "price", nullable = false)
     private long price;
 
+    @Column(name = "active", nullable = false)
+    @Builder.Default
+    private boolean active = true;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)
     private VenueEntity venue;
@@ -41,6 +45,11 @@ public class SeatEntity {
     @OneToMany(mappedBy = "seat", cascade = CascadeType.ALL)
     @Builder.Default
     private List<ReservationEntity> reservations = new ArrayList<>();
+
+    public void updateActiveStatus(boolean active) {
+        this.active = active;
+    }
+
 
     // 연관관계 편의 메서드
     public void addVenue(VenueEntity venue) {
