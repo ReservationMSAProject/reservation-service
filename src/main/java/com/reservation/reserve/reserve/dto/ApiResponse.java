@@ -5,7 +5,7 @@ public record ApiResponse<T>(
         String message,
         T data
 ) {
-    public static <T> ApiResponse<T> success() {
+    public static <T> ApiResponse<T> ofSuccess() {
         return new ApiResponse<>(true, "성공", null);
     }
 

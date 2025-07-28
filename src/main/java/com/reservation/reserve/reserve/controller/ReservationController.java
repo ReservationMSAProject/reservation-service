@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reservations")
+@RequestMapping("/reserve/api/reservations")
 @RequiredArgsConstructor
 @Slf4j
 public class ReservationController {
@@ -38,7 +38,7 @@ public class ReservationController {
     public ResponseEntity<ApiResponse<Void>>  cancelReservation(@PathVariable("reservationId") Long reservationId) {
 
         reservationService.cancelReservation(reservationId);
-        return ResponseEntity.ok(ApiResponse.success());
+        return ResponseEntity.ok(ApiResponse.ofSuccess());
 
     }
 
