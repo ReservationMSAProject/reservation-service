@@ -2,6 +2,7 @@ package com.reservation.reserve.reserve.repository;
 
 import com.reservation.reserve.reserve.domain.ConcertEntity;
 import com.reservation.reserve.reserve.domain.SeatEntity;
+import com.reservation.reserve.reserve.domain.StatusEnum;
 import com.reservation.reserve.reserve.domain.VenueEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,8 +21,8 @@ public interface SeatRepository extends JpaRepository<SeatEntity, Long> {
                     SELECT 1 FROM ReservationEntity r
                     WHERE r.seat = s
                     AND r.concert = :concert
-                    AND r.status IN (com.reservation.reserve.reserve.domain.StatusEnum.CONFIRMED, com.reservation.reserve.reserve.domain.StatusEnum.TEMP_RESERVED)
+                    AND r.status IN :statuses
                 )
             """)
-    List<SeatEntity> findAvailableSeatsByConcert(@Param("venue") VenueEntity venue, @Param("concert") ConcertEntity concert);
+    List<SeatEntity> findAvailableSeatsByConcert(@Param("venue") VenueEntity venue, @Param("concert") ConcertEntity concert, @Param("statuses") List<StatusEnum> statuses);
 }
