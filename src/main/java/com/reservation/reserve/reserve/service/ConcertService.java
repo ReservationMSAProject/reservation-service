@@ -1,4 +1,4 @@
-package com.reservation.reserve.reserve.service;// src/main/java/com/reservation/reserve/reserve/service/ConcertService.java
+package com.reservation.reserve.reserve.service;
 
 import com.reservation.reserve.reserve.domain.ConcertEntity;
 import com.reservation.reserve.reserve.domain.SeatEntity;
@@ -6,6 +6,7 @@ import com.reservation.reserve.reserve.dto.concert.ConcertDetailResponse;
 import com.reservation.reserve.reserve.dto.concert.ConcertResponse;
 import com.reservation.reserve.reserve.repository.ConcertRepository;
 import com.reservation.reserve.reserve.repository.SeatRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,8 +45,8 @@ public class ConcertService {
     @Transactional(readOnly = true)
     public ConcertDetailResponse getAvailableSeats(Long concertId) {
 
-        ConcertEntity concert = concertRepository.findById(concertId)
-                .orElseThrow(() -> new IllegalArgumentException("콘서트를 찾을 수 없습니다."));
+        ConcertEntity concert = concertRepository.findByIdWithVenue(concertId)
+                .orElseThrow(() -> new EntityNotFoundException("콘서트를 찾을 수 없습니다."));
 
         List<SeatEntity> availableSeatsByConcert = seatRepository.findAvailableSeatsByConcert(concert.getVenue(), concert);
 

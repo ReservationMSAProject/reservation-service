@@ -32,7 +32,7 @@ public class ConcertController {
     @GetMapping("/detail/{concertId}")
     public ResponseEntity<ApiResponse<ConcertDetailResponse>> getAvailableSeats(@PathVariable("concertId") Long concertId) {
 
-        ConcertDetailResponse availableSeats = concertService.getAvailableSeats(concertId);
-        return ResponseEntity.ok(ApiResponse.success(availableSeats));
+        ConcertDetailResponse concertDetail = concertService.getAvailableSeats(concertId);
+        return ResponseEntity.ok(ApiResponse.success(concertDetail));
     }
 }

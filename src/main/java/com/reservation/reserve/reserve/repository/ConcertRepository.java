@@ -3,10 +3,12 @@ package com.reservation.reserve.reserve.repository;
 import com.reservation.reserve.reserve.domain.ConcertEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ConcertRepository extends JpaRepository<ConcertEntity, Long> {
@@ -30,6 +32,9 @@ public interface ConcertRepository extends JpaRepository<ConcertEntity, Long> {
             WHERE c.date < :date
             ORDER BY c.date, c.name
             """)
-    List<ConcertEntity> findConcertByDatePass(LocalDateTime date);
+    List<ConcertEntity> findPastConcertsByDate(LocalDateTime date);
 
+
+    @Query("SELECT c FROM ConcertEntity c JOIN FETCH c.venue WHERE c.id = :id")
+    Optional<ConcertEntity> findByIdWithVenue(@Param("id") Long id);
 }

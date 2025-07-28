@@ -17,11 +17,12 @@ public interface SeatRepository extends JpaRepository<SeatEntity, Long> {
     //콘서트의 빈 좌석 조회
     @Query("""
                 SELECT s FROM SeatEntity s
-                LEFT JOIN ReservationEntity r ON r.seat = s AND r.concert = :concert AND r.status = com.reservation.reserve.reserve.domain.StatusEnum.CONFIRMED
-                WHERE s.venue = :venue
-                AND r.id IS NULL
+                WHERE s.venue = :venue AND NOT EXISTS (
+                    SELECT 1 FROM ReservationEntity r
+                    WHERE r.seat = s
+                    AND r.concert = :concert
+                    AND r.status IN (com.reservation.reserve.reserve.domain.StatusEnum.CONFIRMED, com.reservation.reserve.reserve.domain.StatusEnum.TEMP_RESERVED)
+                )
             """)
     List<SeatEntity> findAvailableSeatsByConcert(@Param("venue") VenueEntity venue, @Param("concert") ConcertEntity concert);
-
-
 }
