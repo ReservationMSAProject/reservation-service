@@ -114,7 +114,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional
     public void cancelReservation(Long reservationId) {
 
-        ReservationEntity reservation = reservationRepository.findById(id)
+        ReservationEntity reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
 
         reservation.updateStatus(StatusEnum.CANCELLED);

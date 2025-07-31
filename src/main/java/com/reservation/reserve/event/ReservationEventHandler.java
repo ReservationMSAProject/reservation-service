@@ -22,7 +22,7 @@ public class ReservationEventHandler {
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000, multiplier = 2)
     )
-    public void handleReservationCreated(ReservationEventDto response) {
+    public void handleReservationEvent(ReservationEventDto response) {
         try {
 
             reservationEventProducer.sendEvent(response);
