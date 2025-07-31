@@ -1,6 +1,7 @@
 package com.reservation.reserve.reserve.controller;
 
 import com.reservation.reserve.aop.RequireAuth;
+import com.reservation.reserve.event.ReservationEventDto;
 import com.reservation.reserve.filter.UserContext;
 import com.reservation.reserve.reserve.dto.ApiResponse;
 import com.reservation.reserve.reserve.dto.reservation.ReservationCreateRequest;
@@ -20,6 +21,12 @@ import java.util.List;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    
+    @GetMapping("/test")
+    public ResponseEntity<ReservationEventDto> test() {
+        ReservationEventDto eventDto = reservationService.testKafka();
+        return ResponseEntity.ok(eventDto);
+    }
 
     // 예약 생성
     @PostMapping("/create")
