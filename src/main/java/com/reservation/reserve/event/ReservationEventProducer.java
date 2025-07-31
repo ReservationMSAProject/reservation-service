@@ -1,17 +1,22 @@
 package com.reservation.reserve.event;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class ReservationEventProducer {
 
     private final KafkaTemplate<String, ReservationEventDto> kafkaTemplate;
-    private static final String TOPIC = "reservation-events";
+    private final String topicName;
+
+    public ReservationEventProducer(KafkaTemplate<String, ReservationEventDto> kafkaTemplate,
+                                    @Value("${kafka.topic.name}") String topicName) {
+        this.kafkaTemplate = kafkaTemplate;
+        this.topicName = topicName;
+    }
 
     public void sendEvent(ReservationEventDto event) {
-        kafkaTemplate.send(TOPIC, event);
+        kafkaTemplate.send(topicName, event);
     }
 }

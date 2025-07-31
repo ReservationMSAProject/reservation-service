@@ -2,7 +2,6 @@ package com.reservation.reserve.reserve.service;
 
 
 import com.reservation.reserve.event.ReservationEventDto;
-import com.reservation.reserve.event.ReservationEventProducer;
 import com.reservation.reserve.reserve.domain.ConcertEntity;
 import com.reservation.reserve.reserve.domain.ReservationEntity;
 import com.reservation.reserve.reserve.domain.SeatEntity;
@@ -15,6 +14,7 @@ import com.reservation.reserve.reserve.repository.SeatRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,9 +30,9 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final ConcertRepository concertRepository;
     private final SeatRepository seatRepository;
-    private final ReservationEventProducer reservationEventProducer;
+    private final ApplicationEventPublisher eventPublisher;
 
-    
+
     // 저장
     @Override
     @Transactional
@@ -51,7 +51,7 @@ public class ReservationServiceImpl implements ReservationService {
         );
 
         if (!isAvailable) {
-            throw new IllegalArgumentException("The seat is not available for reservation.");
+            throw new IllegalArgumentException("해당 좌석은 예약 불가능 합니다.");
         }
 
         ReservationEntity reservation = ReservationEntity.builder()
@@ -70,6 +70,18 @@ public class ReservationServiceImpl implements ReservationService {
         String addressInfo = savedReservation.getConcert().getVenue().getAddress() != null
                 ? savedReservation.getConcert().getVenue().getAddress().getFullAddress()
                 : "";
+
+        ReservationEventDto eventDto = new ReservationEventDto(
+                savedReservation.getId(),
+                savedReservation.getReserverEmail(),
+                savedReservation.getConcert().getName(),
+                savedReservation.getConcert().getDate(),
+                savedReservation.getSeat().getSeatNumber(),
+                "CREATE",
+                LocalDateTime.now().toString()
+        );
+
+        eventPublisher.publishEvent(eventDto);
 
         return new ReservationResponse(
                 savedReservation.getId(),
@@ -94,26 +106,39 @@ public class ReservationServiceImpl implements ReservationService {
         );
     }
 
-   // 취소
-   @Override
+    // 취소
+    @Override
     @Transactional
     public void cancelReservation(Long id) {
+
         ReservationEntity reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
+
         reservation.updateStatus(StatusEnum.CANCELLED);
         reservationRepository.save(reservation);
+
+        ReservationEventDto eventDto = new ReservationEventDto(
+                reservation.getId(),
+                reservation.getReserverEmail(),
+                reservation.getConcert().getName(),
+                reservation.getConcert().getDate(),
+                reservation.getSeat().getSeatNumber(),
+                "CANCEL",
+                LocalDateTime.now().toString()
+        );
+
+        eventPublisher.publishEvent(eventDto);
     }
 
 
     // 예약 조회
     @Override
     @Transactional(readOnly = true)
-    public ReservationResponse getReservation(Long reservationId){
+    public ReservationResponse getReservation(Long reservationId) {
         return reservationRepository.findByIdWithDetails(reservationId)
                 .map(getReservationEntityReservationResponseFunction())
                 .orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
     }
-
 
 
     // 특정 이메일에 대한 모든 예약 조회
@@ -130,7 +155,7 @@ public class ReservationServiceImpl implements ReservationService {
     // 특정 콘서트와 좌석에 대한 예약 조회
     @Override
     @Transactional(readOnly = true)
-    public List<ReservationResponse> getReservationsByConcertAndSeat(Long concertId, Long seatId){
+    public List<ReservationResponse> getReservationsByConcertAndSeat(Long concertId, Long seatId) {
         List<ReservationEntity> reservations = reservationRepository.findAllByConcertIdAndSeatId(concertId, seatId);
 
         return reservations.stream()
@@ -139,17 +164,20 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    @Transactional
     public ReservationEventDto testKafka() {
         ReservationEventDto eventDto = new ReservationEventDto(
-            1L, // reservationId 예시
-            "test@email.com", // email 예시
-            "테스트 콘서트", // concertName 예시
-            LocalDateTime.now().plusDays(7), // concertDate 예시
-            "A-1", // seatNumber 예시
-            "CREATE", // eventType 예시
-            LocalDateTime.now().toString() // timestamp 예시
+                1L, // 예약 ID
+                "test@email.com", // 예약자 이메일
+                "테스트 콘서트", // 콘서트명
+                LocalDateTime.now().plusDays(1), // 콘서트 날짜
+                "A-1", // 좌석 번호
+                "CREATE", // 이벤트 타입
+                LocalDateTime.now().toString() // 이벤트 발생 시각
         );
-        reservationEventProducer.sendEvent(eventDto);
+
+        eventPublisher.publishEvent(eventDto);
+
         return eventDto;
     }
 
@@ -181,8 +209,6 @@ public class ReservationServiceImpl implements ReservationService {
 
         );
     }
-
-
 
 
 }
