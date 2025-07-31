@@ -10,5 +10,5 @@ public record ReservationEventDto(
         LocalDateTime concertDate,
         String seatNumber,
         String eventType,
-        String timestamp
+        LocalDateTime timestamp
 ) { }

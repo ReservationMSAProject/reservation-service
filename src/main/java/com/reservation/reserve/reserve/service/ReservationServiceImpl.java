@@ -40,7 +40,10 @@ public class ReservationServiceImpl implements ReservationService {
         ConcertEntity concertEntity = concertRepository.findById(requestDto.getConcertId())
                 .orElseThrow(() -> new EntityNotFoundException("Concert not found"));
 
-        SeatEntity seatEntity = seatRepository.findById(requestDto.getSeatId())
+//        SeatEntity seatEntity = seatRepository.findById(requestDto.getSeatId())
+//                .orElseThrow(() -> new EntityNotFoundException("Seat not found"));
+
+        SeatEntity seatEntity = seatRepository.findByIdForUpdate(requestDto.getSeatId())
                 .orElseThrow(() -> new EntityNotFoundException("Seat not found"));
 
         // 좌석 예약 가능 여부 확인
@@ -78,7 +81,7 @@ public class ReservationServiceImpl implements ReservationService {
                 savedReservation.getConcert().getDate(),
                 savedReservation.getSeat().getSeatNumber(),
                 "CREATE",
-                LocalDateTime.now().toString()
+                LocalDateTime.now()
         );
 
         eventPublisher.publishEvent(eventDto);
@@ -109,7 +112,7 @@ public class ReservationServiceImpl implements ReservationService {
     // 취소
     @Override
     @Transactional
-    public void cancelReservation(Long id) {
+    public void cancelReservation(Long reservationId) {
 
         ReservationEntity reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Reservation not found"));
@@ -124,7 +127,7 @@ public class ReservationServiceImpl implements ReservationService {
                 reservation.getConcert().getDate(),
                 reservation.getSeat().getSeatNumber(),
                 "CANCEL",
-                LocalDateTime.now().toString()
+                LocalDateTime.now()
         );
 
         eventPublisher.publishEvent(eventDto);
@@ -173,7 +176,7 @@ public class ReservationServiceImpl implements ReservationService {
                 LocalDateTime.now().plusDays(1), // 콘서트 날짜
                 "A-1", // 좌석 번호
                 "CREATE", // 이벤트 타입
-                LocalDateTime.now().toString() // 이벤트 발생 시각
+                LocalDateTime.now()
         );
 
         eventPublisher.publishEvent(eventDto);
